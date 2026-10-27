@@ -39,19 +39,31 @@ product_data = {
 }
 
 # Single Prediction
-if st.button("Predict", type='primary'):
+if st.button("Predict", type="primary"):
 
-    response = requests.post(
-        f"{BACKEND_URL}/v1/predict",
-        json=product_data
-    )
+    try:
+        with st.spinner("Connecting to prediction API..."):
+            response = requests.post(
+                f"{BACKEND_URL}/v1/predict",
+                json=product_data,
+                timeout=120
+            )
 
-    if response.status_code == 200:
-        result = response.json()
-        predicted_sales = result["Sales"]
-        st.success(f"Predicted Product Store Sales Total: ₹{predicted_sales:.2f}")
-    else:
-        st.error("Unable to connect to the prediction API.")
+        if response.status_code == 200:
+            result = response.json()
+            predicted_sales = result["Sales"]
+
+            st.success(
+                f"Predicted Product Store Sales Total: ₹{predicted_sales:,.2f}"
+            )
+
+        else:
+            st.error(
+                f"Backend returned HTTP {response.status_code}"
+            )
+
+    except requests.exceptions.RequestException as e:
+        st.error(f"Unable to connect to backend: {e}")
 
 # Batch Prediction
 st.subheader("Batch Prediction")
